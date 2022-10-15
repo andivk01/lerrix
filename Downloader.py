@@ -9,20 +9,21 @@ class Downloader:
     
     def download_videos(self, videos, file_prefix, output_dir, ffmpeg_params=None, codec="libx265"):
         history_file = open(self.download_history, "a+")
+        history = history_file.read().splitlines()
         output_videos = []
         for video_in in videos:
             video_out = Video(
                 original_name = f"{file_prefix}{video_in.original_name}",
                 location = f"{output_dir}/{file_prefix}{video_in.formatted_name}"
             )
-            if video_out.original_name in self.download_history:
-                print(f"Skipping {video_out.original_name} because it's already downloaded")
+            if video_in.original_name in history:
+                print(f"Skipping {video_in.original_name} because it's already downloaded")
                 continue
-            print(f"Downloading {video_out.location}")
+            print(f"Downloading {video_in.location}")
             download_time = self._download(video_in, video_out, ffmpeg_params, codec)
             print(f"Downloaded {video_out.location} in {download_time} seconds")
             output_videos += [video_out]
-            history_file.write(video_out.original_name)
+            history_file.write(video_in.original_name)
             history_file.write("\n")
             history_file.flush()
         history_file.close()

@@ -1,6 +1,7 @@
 from DirScraper import DirScraper
 from Silencer import Silencer
 from Downloader import Downloader
+from getpass import getpass
 import keyring
 import os
 import argparse
@@ -25,7 +26,8 @@ def credentials():
         print("Using username: " + username)
     password = keyring.get_password(keyring_id, username)
     if password is None:
-        password = input("Password: ")
+        # input hide psw
+        password = getpass("Password (hidden): ")
         keyring.set_password(keyring_id, username, password)
     else:
         print("Using password from keyring")
@@ -55,6 +57,7 @@ if __name__ == "__main__":
     group.add_argument("--manifests", help="Download manifests from sharepoint's directory url")
     group.add_argument("--download", help="Download video by URL")
     group.add_argument("--unsilence", help="Unsilence video by videopath")
+    group.add_argument("--download-spdirs", help="Download all videos from sharepoint directories (without unsilencing)", action="store_true")
     parser.add_argument("--output", help="Output file/directory path")
     parser.add_argument("--dvcodec", help="Video codec for downloader's output", choices=codecs_available, default="libx264")
     parser.add_argument("--svcodec", help="Video codec for silencer's output", choices=codecs_available, default="libx265")
@@ -64,7 +67,7 @@ if __name__ == "__main__":
         if args.manifests.startswith("https://"):
             username, password = credentials()
             ds = DirScraper(args.manifests, username, password, log_file=args.output)
-            time_to_load = ds.load()
+            time_to_load = ds.load(download_history)
             print(f"Loaded in {time_to_load:.2f} seconds, output in {args.output}")
             ds.driver_quit()
     elif args.download:
@@ -72,8 +75,6 @@ if __name__ == "__main__":
     elif args.unsilence:
         print("Not implemented yet")
     else:
-        print("No arguments passed, running all the script")
-
         with open(sp_dirs_file) as json_file: # read sharepoint directories to scan
             sp_dirs = json.load(json_file)
         init_local_dirs(sp_dirs)
@@ -82,7 +83,7 @@ if __name__ == "__main__":
 
         for sp_dir in sp_dirs:
             ds = DirScraper(sp_dir["url"], username, password, log_file=f"{log_directory}/{sp_dir['local_dir']}.log")
-            time_to_load = ds.load()
+            time_to_load = ds.load(download_history)
             print(f"Loaded {sp_dir['local_dir']} in {time_to_load} seconds")
             
             video_dir_path = videos_dir + "/" + sp_dir["local_dir"]
@@ -96,7 +97,8 @@ if __name__ == "__main__":
                 ffmpeg_params = sp_dir["ffmpeg_download_params"],
                 codec=args.dvcodec
             )
-            silencer = Silencer(silence_history) # silence_history is used to avoid silencing the same file twice
-            silencer.unsilence_videos(downloaded_videos, unsilenced_videos_dir_path, codec=args.svcodec)
+            if not args.download_spdirs:
+                silencer = Silencer(silence_history) # silence_history is used to avoid silencing the same file twice
+                silencer.unsilence_videos(downloaded_videos, unsilenced_videos_dir_path, codec=args.svcodec)
             
             ds.driver_quit()

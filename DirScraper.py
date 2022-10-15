@@ -14,7 +14,7 @@ class DirScraper(SP_Scraper):
         self.log_file = log_file
         self.videos = []
 
-    def load(self):
+    def load(self, titles_to_ignore_file=None):
         start_time = time.time()
         self.get_request(self.dir_url)
         
@@ -23,7 +23,15 @@ class DirScraper(SP_Scraper):
         link_btns = self.driver.find_elements("xpath", "//div[@role='presentation']//button[@role='link']")
 
         video_titles = []
+        titles_to_ignore = []
+        if titles_to_ignore_file is not None:
+            with open(titles_to_ignore_file) as file:
+                titles_to_ignore = file.read().splitlines()
+
         for link_btn in link_btns:
+            if link_btn.text in titles_to_ignore:
+                print("Ignoring video from scraping: " + link_btn.text)
+                continue
             video_titles.append(link_btn.text)
             link_btn.click()
             time.sleep(5) # wait for getting manifest
