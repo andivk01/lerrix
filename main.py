@@ -54,7 +54,7 @@ if __name__ == "__main__":
     # TODO: add argument for reading manifests from file instead of scraping (when running all scripts at once)
     parser = argparse.ArgumentParser(description='LERRIX v0.1')
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--manifests", help="Download manifests from sharepoint's directory url")
+    group.add_argument("--scrape-spdirs", help="Download manifests from sharepoint's directory url")
     group.add_argument("--download", help="Download video by URL")
     group.add_argument("--unsilence", help="Unsilence video by videopath")
     group.add_argument("--download-spdirs", help="Download all videos from sharepoint directories (without unsilencing)", action="store_true")
@@ -63,10 +63,10 @@ if __name__ == "__main__":
     parser.add_argument("--svcodec", help="Video codec for silencer's output", choices=codecs_available, default="libx265")
     args = parser.parse_args()
 
-    if args.manifests:
-        if args.manifests.startswith("https://"):
+    if args.scrape_spdirs:
+        if args.scrape_spdirs.startswith("https://"):
             username, password = credentials()
-            ds = DirScraper(args.manifests, username, password, log_file=args.output)
+            ds = DirScraper(args.scrape_spdirs, username, password, log_file=args.output)
             time_to_load = ds.load(download_history)
             print(f"Loaded in {time_to_load:.2f} seconds, output in {args.output}")
             ds.driver_quit()
