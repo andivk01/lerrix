@@ -34,7 +34,7 @@ class DirScraper(SP_Scraper):
             video_titles.append(link_btn.text)
             link_btn.click()
             time.sleep(5) # wait for getting manifest
-            self.click_btn_by(id="//button[@data-automationid='close'][@role='menuitem']", by=By.XPATH)
+            self.click_btn_by(id="//button[@role='menuitem']//i[@data-icon-name='Cancel']", by=By.XPATH)
         
         manifests = [request.url for request in self.driver.requests if "videomanifest" in request.url]
         self.videos = [Video(original_name, location=manifest) for original_name, manifest in zip(video_titles, manifests)]

@@ -16,11 +16,13 @@ unsilenced_videos_dir = "unsilenced_videos"
 videos_dir = "videos"
 sp_dirs_file = "sp_dirs_to_scan.json"
 codecs_available = ["copy", "libx265", "libx264", "h264_amf"]
+credentials_lastusername = "credentials_lastusername"
+credentials_password = "credentials_password"
 
 enc_key = "qCVjXuHqfNQ4JiuFD9iK" # random string used for encoding the credentials, TODO: INSICURE
 
 def credentials():
-    pkeeper = DataKeeper("credentials_lastusername", enc_key)
+    pkeeper = DataKeeper(credentials_lastusername, enc_key)
     username = pkeeper.load()
     if username is None:
         username = input("Username: ")
@@ -28,7 +30,7 @@ def credentials():
     else:
         print("Using username: " + username)
 
-    pkeeper = DataKeeper("credentials_password", enc_key)
+    pkeeper = DataKeeper(credentials_password, enc_key)
     password = pkeeper.load()
     if password is None:
         password = getpass("Password (hidden): ")
@@ -62,6 +64,7 @@ if __name__ == "__main__":
     # TODO: add argument for reading manifests from file instead of scraping (when running all scripts at once)
     parser = argparse.ArgumentParser(description='LERRIX v0.1')
     group = parser.add_mutually_exclusive_group()
+    group.add_argument('--credentials', action='store_true', help='Change credentials')
     group.add_argument("--scrape-spdirs", help="Download manifests from sharepoint's directory url")
     group.add_argument("--download", help="Download video by URL")
     group.add_argument("--unsilence", help="Unsilence video by videopath")
@@ -69,6 +72,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", help="Output file/directory path")
     parser.add_argument("--dvcodec", help="Video codec for downloader's output", choices=codecs_available, default="libx264")
     parser.add_argument("--svcodec", help="Video codec for silencer's output", choices=codecs_available, default="libx265")
+    parser.add_argument("--ffmpeg-threads", help="Number of threads for ffmpeg", type=int, default=2)
     args = parser.parse_args()
 
     if args.scrape_spdirs:
@@ -82,6 +86,12 @@ if __name__ == "__main__":
         print("Not implemented yet")
     elif args.unsilence:
         print("Not implemented yet")
+    elif args.credentials:
+        if os.path.exists(credentials_lastusername):
+            os.remove(credentials_lastusername)
+        if os.path.exists(credentials_password):
+            os.remove(credentials_password)
+        credentials()
     else:
         with open(sp_dirs_file) as json_file: # read sharepoint directories to scan
             sp_dirs = json.load(json_file)
