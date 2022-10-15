@@ -9,7 +9,6 @@ import json
 from DataKeeper import DataKeeper
 
 last_username_key = "last_username"
-keyring_id = "lerrix_keyring"
 log_directory = "logs"
 download_history = f"{log_directory}/download_history.log"
 silence_history = f"{log_directory}/silence_history.log"
