@@ -27,9 +27,8 @@ class DirScraper(SP_Scraper):
         if titles_to_ignore_file is not None:
             with open(titles_to_ignore_file) as file:
                 titles_to_ignore = file.read().splitlines()
-
         for link_btn in link_btns:
-            if link_btn.text in titles_to_ignore:
+            if Video.formatted_name(link_btn.text) in titles_to_ignore:
                 print("Ignoring video from scraping: " + link_btn.text)
                 continue
             video_titles.append(link_btn.text)

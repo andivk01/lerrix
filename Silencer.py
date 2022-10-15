@@ -17,10 +17,15 @@ class Silencer:
             video_out = Video(
                 original_name = video_in.original_name,
                 location = f"{output_dir}/{video_in.formatted_name}",
+                formatted_name=video_in.formatted_name
             )
             self.unsilence(video_in, video_out, codec)
 
     def unsilence(self, video_in, video_out, codec="libx265"):
+        with open(self.silence_history, "r") as f:
+            if video_in.formatted_name in f.read():
+                print(f"Video {video_in.formatted_name} is already unsilenced, skipping...")
+                return
         intervals = self.detect_silence(video_in)
         tmpdir = "tmp" + str(int(time.time()))
         if os.path.exists(tmpdir):
@@ -61,7 +66,9 @@ class Silencer:
             video_out.location
         ]
         subprocess.run(command)
-        print(f"Video reassembled in {time.time() - start_time}s")
+        with open(self.silence_history, "a") as f:
+            f.write(video_in.formatted_name + "\n")
+        print(f"Video reassembled in {(time.time() - start_time):.2f}s")
         shutil.rmtree(tmpdir) 
 
     def detect_silence(self, video):

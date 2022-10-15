@@ -8,28 +8,24 @@ class Downloader:
         self.download_history = download_history
     
     def download_videos(self, videos, file_prefix, output_dir, ffmpeg_params=None, codec="libx265"):
-        history_file = open(self.download_history, "a+")
-        history = history_file.read().splitlines()
         output_videos = []
         for video_in in videos:
             video_out = Video(
-                original_name = f"{file_prefix}{video_in.original_name}",
-                location = f"{output_dir}/{file_prefix}{video_in.formatted_name}"
+                original_name = f"{video_in.original_name}",
+                location = f"{output_dir}/{file_prefix}{video_in.formatted_name}",
+                formatted_name = f"{file_prefix}{video_in.formatted_name}"
             )
-            if video_in.original_name in history:
-                print(f"Skipping {video_in.original_name} because it's already downloaded")
-                continue
-            print(f"Downloading {video_in.location}")
-            download_time = self._download(video_in, video_out, ffmpeg_params, codec)
-            print(f"Downloaded {video_out.location} in {download_time} seconds")
+            print(f"Downloading {video_in.original_name}")
+            download_time = self.download(video_in, video_out, ffmpeg_params, codec)
+            print(f"Downloaded {video_out.formatted_name} in {download_time:.2f} seconds")
             output_videos += [video_out]
-            history_file.write(video_in.original_name)
-            history_file.write("\n")
-            history_file.flush()
-        history_file.close()
         return output_videos
 
-    def _download(self, video_in, video_out, ffmpeg_params=None, codec="libx265"):
+    def download(self, video_in, video_out, ffmpeg_params=None, codec="libx265"):
+        with open(self.download_history, "r") as f:
+            if video_in.formatted_name in f.read():
+                print(f"Skipping {video_in.formatted_name} because it's already downloaded")
+                return
         start_download_time = time.time()
         command = [
             "ffmpeg",
@@ -45,5 +41,8 @@ class Downloader:
             command += ffmpeg_params
         command.append(video_out.location)
         subprocess.run(command)
+
+        with open(self.download_history, "a") as f:
+            f.write(video_in.formatted_name + "\n")
 
         return time.time() - start_download_time

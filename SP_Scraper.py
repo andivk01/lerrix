@@ -13,7 +13,7 @@ import pickle
 import os
 
 class SP_Scraper:
-    args = ["--mute-audio"] #["--mute-audio", "--headless"] # TODO HEADLESS CASH
+    args = ["--mute-audio"] #["--mute-audio", "--headless"] # TODO HEADLESS CRASH
     implicit_wait = 15
     timeout = 15
 
@@ -34,6 +34,7 @@ class SP_Scraper:
 
     def _driver(self):
         chrome_opt = webdriver.ChromeOptions()
+        chrome_opt.add_experimental_option("excludeSwitches", ["enable-logging"]) # TODO, bluetooth error
         for arg in SP_Scraper.args:
             chrome_opt.add_argument(arg)
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_opt)
