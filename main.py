@@ -27,7 +27,6 @@ def credentials():
         print("Using username: " + username)
     password = keyring.get_password(keyring_id, username)
     if password is None:
-        # input hide psw
         password = getpass("Password (hidden): ")
         keyring.set_password(keyring_id, username, password)
     else:
