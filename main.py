@@ -84,9 +84,9 @@ if __name__ == "__main__":
     elif args.unsilence:
         print("Not implemented yet")
     else:
-        PrintColors.set_color(PrintColors.OKYELLOW)
         with open(sp_dirs_file) as json_file: # read sharepoint directories to scan
             sp_dirs = json.load(json_file)
+        PrintColors.set_color(PrintColors.OKYELLOW)
         init_local_dirs(sp_dirs)
         username, password = credentials()
 
