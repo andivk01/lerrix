@@ -3,10 +3,10 @@ from PrintColors import PrintColors
 from Silencer import Silencer
 from Downloader import Downloader
 from getpass import getpass
-import keyring
 import os
 import argparse
 import json
+from DataKeeper import DataKeeper
 
 last_username_key = "last_username"
 keyring_id = "lerrix_keyring"
@@ -18,19 +18,24 @@ videos_dir = "videos"
 sp_dirs_file = "sp_dirs_to_scan.json"
 codecs_available = ["copy", "libx265", "libx264", "h264_amf"]
 
+enc_key = "qCVjXuHqfNQ4JiuFD9iK" # random string used for encoding the credentials, TODO: INSICURE
+
 def credentials():
-    username = keyring.get_password(keyring_id, last_username_key)
+    pkeeper = DataKeeper("credentials_lastusername", enc_key)
+    username = pkeeper.load()
     if username is None:
         username = input("Username: ")
-        keyring.set_password(keyring_id, last_username_key, username)
+        pkeeper.store(username)
     else:
         print("Using username: " + username)
-    password = keyring.get_password(keyring_id, username)
+
+    pkeeper = DataKeeper("credentials_password", enc_key)
+    password = pkeeper.load()
     if password is None:
         password = getpass("Password (hidden): ")
-        keyring.set_password(keyring_id, username, password)
+        pkeeper.store(password)
     else:
-        print("Using password from keyring")
+        print("Using password from credentials_password")
     return username, password
 
 def init_local_dirs(sp_dirs):
