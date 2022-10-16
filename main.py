@@ -72,6 +72,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", help="Output file/directory path")
     parser.add_argument("--dvcodec", help="Video codec for downloader's output", choices=codecs_available, default="libx264")
     parser.add_argument("--svcodec", help="Video codec for silencer's output", choices=codecs_available, default="libx265")
+    parser.add_argument("--d-ow", help="Overwrite existing files while downloading", action="store_true")
     parser.add_argument("--ffmpeg-threads", help="Number of threads for ffmpeg", type=int, default=2)
     args = parser.parse_args()
 
@@ -115,7 +116,8 @@ if __name__ == "__main__":
                 output_dir = video_dir_path,
                 file_prefix = sp_dir["file_prefix"],
                 ffmpeg_params = sp_dir["ffmpeg_download_params"],
-                codec=args.dvcodec
+                codec = args.dvcodec,
+                overwrite = args.d_ow,
             )
             if not args.download_spdirs:
                 PrintColors.set_color(PrintColors.OKMAGENTA)

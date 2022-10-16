@@ -8,7 +8,7 @@ class Downloader:
     def __init__(self, download_history):
         self.download_history = download_history
     
-    def download_videos(self, videos, file_prefix, output_dir, ffmpeg_params=None, codec="libx265"):
+    def download_videos(self, videos, file_prefix, output_dir, ffmpeg_params=None, codec="libx265", overwrite=False):
         output_videos = []
         for video_in in videos:
             video_out = Video(
@@ -17,20 +17,20 @@ class Downloader:
                 formatted_name = f"{file_prefix}{video_in.formatted_name}"
             )
             print(f"Downloading {video_in.original_name}")
-            download_time = self.download(video_in, video_out, ffmpeg_params, codec)
+            download_time = self.download(video_in, video_out, ffmpeg_params, codec, overwrite)
             print(f"Downloaded {video_out.formatted_name} in {download_time:.2f} seconds")
             output_videos += [video_out]
         return output_videos
 
-    def download(self, video_in, video_out, ffmpeg_params=None, codec="libx265"):
+    def download(self, video_in, video_out, ffmpeg_params=None, codec="libx265", overwrite=False):
         with open(self.download_history, "r") as f:
             if video_in.formatted_name in f.read():
                 print(f"Skipping {video_in.formatted_name} because it's already downloaded")
                 return
         start_download_time = time.time()
-        command = [
-            "ffmpeg",
-            "-y", # overwrite output file if it exists
+        command = ["ffmpeg"]
+        command += ["-y"] if overwrite else ["-n"]
+        command += [
             "-v", "quiet",
             "-stats", 
             "-i", f"{video_in.location}",
