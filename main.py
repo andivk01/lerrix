@@ -10,8 +10,8 @@ from DataKeeper import DataKeeper
 
 last_username_key = "last_username"
 log_directory = "logs"
-download_history = f"{log_directory}/download_history.log"
-silence_history = f"{log_directory}/silence_history.log"
+download_history = os.path.join(log_directory, "download_history.log")
+silence_history = os.path.join(log_directory, "silence_history.log")
 unsilenced_videos_dir = "unsilenced_videos"
 videos_dir = "videos"
 sp_dirs_file = "sp_dirs_to_scan.json"
@@ -51,11 +51,11 @@ def init_local_dirs(sp_dirs):
     if not os.path.exists(videos_dir):
         os.mkdir(videos_dir)
     for sp_dir in sp_dirs:
-        video_dir_path = videos_dir + "/" + sp_dir["local_dir"]
+        video_dir_path = os.path.join(videos_dir, sp_dir["local_dir"])
         if not os.path.exists(video_dir_path):
             os.mkdir(video_dir_path)
         
-        unsilenced_videos_dir_path = unsilenced_videos_dir + "/" + sp_dir["local_dir"]
+        unsilenced_videos_dir_path = os.path.join(unsilenced_videos_dir, sp_dir["local_dir"])
         if not os.path.exists(unsilenced_videos_dir_path):
             os.mkdir(unsilenced_videos_dir_path)
 
@@ -105,8 +105,8 @@ if __name__ == "__main__":
             time_to_load = ds.load(download_history)
             print(f"Loaded {sp_dir['local_dir']} in {time_to_load:.2f} seconds")
             
-            video_dir_path = videos_dir + "/" + sp_dir["local_dir"]
-            unsilenced_videos_dir_path = unsilenced_videos_dir + "/" + sp_dir["local_dir"]
+            video_dir_path = os.path.join(videos_dir, sp_dir["local_dir"])
+            unsilenced_videos_dir_path = os.path.join(unsilenced_videos_dir, sp_dir["local_dir"])
 
             PrintColors.set_color(PrintColors.OKCYAN)
             downloader = Downloader(download_history) # download_history is used to avoid downloading the same file twice

@@ -16,7 +16,7 @@ class Silencer:
         for video_in in videos:
             video_out = Video(
                 original_name = video_in.original_name,
-                location = f"{output_dir}/{video_in.formatted_name}",
+                location = os.path.join(output_dir, video_in.formatted_name),
                 formatted_name=video_in.formatted_name
             )
             self.unsilence(video_in, video_out, codec)
@@ -31,12 +31,12 @@ class Silencer:
         if os.path.exists(tmpdir):
             shutil.rmtree(tmpdir)
         os.mkdir(tmpdir)
-        videoparts_file = open(os.path.abspath(tmpdir) + "\\" + "videoparts", "w")
+        videoparts_file = open(os.path.join(os.path.abspath(tmpdir), "videoparts"), "w")
         start_unsilence_time = time.time()
         for idx_interval, interval in enumerate(intervals):
             print(f" "*110, end="\r") # cleaning line
             print(f"Extracting video part {idx_interval+1}/{len(intervals)}, interval length: {(interval[1]-interval[0]):.2f}s, interval_range: {interval[0]:.2f}s -> {interval[1]:.2f}s", end="\r")
-            file_part_output = os.path.abspath(tmpdir) + "/" + f"{idx_interval}.{video_in.extension}"
+            file_part_output = os.path.join(os.path.abspath(tmpdir), f"{idx_interval}.{video_in.extension}")
             command = [
                 "ffmpeg",
                 "-loglevel", "quiet",
@@ -62,7 +62,7 @@ class Silencer:
             "-stats", 
             "-f", "concat",
             "-safe", "0", "-i",
-            os.path.abspath(tmpdir) + "\\" + "videoparts",  
+            os.path.join(os.path.abspath(tmpdir), "videoparts"),  
             video_out.location
         ]
         subprocess.run(command)

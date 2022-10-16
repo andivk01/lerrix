@@ -1,6 +1,7 @@
 from Video import Video
 import time
 import subprocess
+import os
 
 class Downloader:
 
@@ -12,7 +13,7 @@ class Downloader:
         for video_in in videos:
             video_out = Video(
                 original_name = f"{video_in.original_name}",
-                location = f"{output_dir}/{file_prefix}{video_in.formatted_name}",
+                location = f"{os.path.join(output_dir, f'{file_prefix}{video_in.formatted_name}')}",
                 formatted_name = f"{file_prefix}{video_in.formatted_name}"
             )
             print(f"Downloading {video_in.original_name}")
@@ -35,7 +36,6 @@ class Downloader:
             "-i", f"{video_in.location}",
             "-c:v", f"{codec}",
             "-crf", "34", # TODO make this a parameter?
-            "-y"
         ]
         if ffmpeg_params is not None and ffmpeg_params != 0:
             command += ffmpeg_params
