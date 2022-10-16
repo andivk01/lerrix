@@ -47,7 +47,6 @@ class Silencer:
                 "-async", "1",
                 "-safe", "0",
                 "-ignore_unknown", "-y",
-                "-c:v", codec,
                 file_part_output
             ]
             subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -63,6 +62,7 @@ class Silencer:
             "-f", "concat",
             "-safe", "0", "-i",
             os.path.join(os.path.abspath(tmpdir), "videoparts"),  
+            "-c:v", codec,
             video_out.location
         ]
         subprocess.run(command)
