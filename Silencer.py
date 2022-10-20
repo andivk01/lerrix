@@ -7,10 +7,11 @@ import os
 import shutil
 
 class Silencer:
-    def __init__(self, silence_history, db_min=35, min_silence_length=0.5):
+    def __init__(self, silence_history, db_min=35, min_silence_length=0.5, tmp_directory="tmp"):
         self.silence_history = silence_history
         self.db_min = db_min
         self.min_silence_length = min_silence_length
+        self.tmp_directory = tmp_directory
     
     def unsilence_videos(self, videos, output_dir, codec="libx265"):
         for video_in in videos:
@@ -27,7 +28,7 @@ class Silencer:
                 print(f"Video {video_in.formatted_name} is already unsilenced, skipping...")
                 return
         intervals = self.detect_silence(video_in)
-        tmpdir = "tmp" + str(int(time.time()))
+        tmpdir = os.path.join(self.tmp_directory, "tmp" + str(int(time.time())))
         if os.path.exists(tmpdir):
             shutil.rmtree(tmpdir)
         os.mkdir(tmpdir)
@@ -74,7 +75,16 @@ class Silencer:
     def detect_silence(self, video):
         print(f"Detecting silence in {video.location}...")
         start_detect_time = time.time()
-        cmd = ['ffmpeg', '-y', '-i', video.location, '-af', f'silencedetect=noise=-{self.db_min}dB:d={self.min_silence_length}', "-f", "null", "-"]
+        cmd = [
+            'ffmpeg',
+            '-y', 
+            "-v", "quiet",
+            "-stats", 
+            '-i', video.location,
+            '-af',
+            f'silencedetect=noise=-{self.db_min}dB:d={self.min_silence_length}',
+            "-f", "null", "-"
+            ]
         console_output = subprocess.Popen(
             cmd,
             stdout = subprocess.PIPE,

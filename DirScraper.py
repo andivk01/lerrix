@@ -27,15 +27,18 @@ class DirScraper(SP_Scraper):
         if titles_to_ignore_file is not None:
             with open(titles_to_ignore_file) as file:
                 titles_to_ignore = file.read().splitlines()
+        
+        video_ignored_count = 0
         for link_btn in link_btns:
             if Video.formatted_name(link_btn.text) in titles_to_ignore:
-                print("Ignoring video from scraping: " + link_btn.text)
+                video_ignored_count += 1
                 continue
             video_titles.append(link_btn.text)
             link_btn.click()
             time.sleep(5) # wait for getting manifest
             self.click_btn_by(id="//button[@role='menuitem']//i[@data-icon-name='Cancel']", by=By.XPATH)
-        
+        if video_ignored_count > 0:
+            print(f"Number of videos ignored from scraping: {video_ignored_count}")
         manifests = [request.url for request in self.driver.requests if "videomanifest" in request.url]
         self.videos = [Video(original_name, location=manifest) for original_name, manifest in zip(video_titles, manifests)]
         if self.log_file is not None:

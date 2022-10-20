@@ -6,6 +6,7 @@ from getpass import getpass
 import os
 import argparse
 import json
+import shutil
 from DataKeeper import DataKeeper
 
 last_username_key = "last_username"
@@ -18,6 +19,7 @@ sp_dirs_file = "sp_dirs_to_scan.json"
 codecs_available = ["copy", "libx265", "libx264", "h264_amf"]
 credentials_lastusername = "credentials_lastusername"
 credentials_password = "credentials_password"
+tmp_directory = "tmp"
 
 enc_key = "qCVjXuHqfNQ4JiuFD9iK" # random string used for encoding the credentials, TODO: INSICURE
 
@@ -40,6 +42,9 @@ def credentials():
     return username, password
 
 def init_local_dirs(sp_dirs):
+    if os.path.exists(tmp_directory):
+        shutil.rmtree(tmp_directory)
+    os.mkdir(tmp_directory)
     if not os.path.exists(log_directory):
         os.mkdir(log_directory)
     if not os.path.exists(download_history):
@@ -102,10 +107,14 @@ if __name__ == "__main__":
 
         for sp_dir in sp_dirs:
             PrintColors.set_color(PrintColors.OKGREEN)
+            if "ignore-item" in sp_dir and sp_dir["ignore-item"]:
+                print(f"Ignoring {sp_dir['local_dir']}")
+                continue
             ds = DirScraper(sp_dir["url"], username, password, log_file=f"{log_directory}/{sp_dir['local_dir']}.log")
             time_to_load = ds.load(download_history)
             print(f"Loaded {sp_dir['local_dir']} in {time_to_load:.2f} seconds")
-            
+            ds.driver_quit()
+
             video_dir_path = os.path.join(videos_dir, sp_dir["local_dir"])
             unsilenced_videos_dir_path = os.path.join(unsilenced_videos_dir, sp_dir["local_dir"])
 
@@ -123,5 +132,3 @@ if __name__ == "__main__":
                 PrintColors.set_color(PrintColors.OKMAGENTA)
                 silencer = Silencer(silence_history) # silence_history is used to avoid silencing the same file twice
                 silencer.unsilence_videos(downloaded_videos, unsilenced_videos_dir_path, codec=args.svcodec)
-            
-            ds.driver_quit()

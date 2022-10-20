@@ -1,0 +1,3 @@
+selenium-wire
+webdriver-manager
+cryptography
