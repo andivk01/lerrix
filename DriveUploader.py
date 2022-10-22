@@ -8,10 +8,33 @@ from threading import Thread
 
 
 class DriveUploader:
+    """
+        Class that let you easely upload file to Google Drive
 
+        Attributes
+        ----------
+        drive : pydrive.drive.GoogleDrive
+            PyDrive main Google Drive instance
+        items : list<dict>
+            List of dict representing files in Google Drive
+       
+        
+        Methods
+        -------
+        @staticmethod _load_cached_items(filepath='items.cache')
+            Load items attribute if previously dumped with Pickle
+        @staticmethod _save_cached_items(items, filepath='items.cache')
+            Dump with Picle the list of items in the instance
+        refresh_items()
+            Retrieve the list of items on Google Drive
+        unsafe_upload(local_filepath, remote_dir_id)
+            Upload a local file to a Google Drive directory
+        upload(local_filepath, remote_dir_id)
+            Check if the file is already in Google Drive then unsafe_upload
+    """
     
     @staticmethod
-    def _load_cached_items(filepath='items.cache'):
+    def _load_cached_items(filepath='items.cache') -> list:
         items = []
         with open(filepath, 'rb') as fp:
             items = pickle.load(fp)
@@ -70,8 +93,7 @@ class DriveUploader:
 
 if __name__ == '__main__' :
     du = DriveUploader()
-    res = input(">")
-    print(res)
+    print(help(du))
 
 
 
