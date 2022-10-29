@@ -75,7 +75,7 @@ class DriveUploader:
         filename = local_filepath.split('/')[-1]
         if any( item['parent']+item['title'] == remote_dir_id+filename for item in self.items ) and not force:
             raise FileExistsError("File already present in remote directory")
-        self.unsafe_uploader(local_filepath, remote_dir_id)
+        self.unsafe_upload(local_filepath, remote_dir_id)
 
 
     def unsafe_upload(self, local_filepath, remote_dir_id):
