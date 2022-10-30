@@ -40,7 +40,8 @@ class Silencer:
             file_part_output = os.path.join(os.path.abspath(tmpdir), f"{idx_interval}.{video_in.extension}")
             command = [
                 "ffmpeg",
-                "-loglevel", "quiet",
+                "-v", "quiet",
+                "-stats", 
                 "-ss", f"{interval[0]}",
                 "-to", f"{interval[1]}",
                 "-i", f"{video_in.location}",
@@ -78,8 +79,6 @@ class Silencer:
         cmd = [
             'ffmpeg',
             '-y', 
-            "-v", "quiet",
-            "-stats", 
             '-i', video.location,
             '-af',
             f'silencedetect=noise=-{self.db_min}dB:d={self.min_silence_length}',
