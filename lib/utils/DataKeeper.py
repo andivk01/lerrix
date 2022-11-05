@@ -1,6 +1,6 @@
-from cryptography.fernet import Fernet
 import base64, hashlib
 import os
+from cryptography.fernet import Fernet
 
 class DataKeeper:
     def __init__(self, filepath, enc_psw):

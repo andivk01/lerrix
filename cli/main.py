@@ -1,13 +1,13 @@
-from DirScraper import DirScraper
-from PrintColors import PrintColors
-from Silencer import Silencer
-from Downloader import Downloader
+from lib.scrape.exDirScraper import DirScraper
+from lib.utils.PrintUtils import PrintUtils
+from lib.unsilence.Silencer import Silencer
+from lib.download.Downloader import Downloader
 from getpass import getpass
 import os
 import argparse
 import json
 import shutil
-from DataKeeper import DataKeeper
+from lib.utils.DataKeeper import DataKeeper
 
 last_username_key = "last_username"
 log_directory = "logs"
@@ -101,12 +101,12 @@ if __name__ == "__main__":
     else:
         with open(sp_dirs_file) as json_file: # read sharepoint directories to scan
             sp_dirs = json.load(json_file)
-        PrintColors.set_color(PrintColors.OKYELLOW)
+        PrintUtils.set_color(PrintUtils.OKYELLOW)
         init_local_dirs(sp_dirs)
         username, password = credentials()
 
         for sp_dir in sp_dirs:
-            PrintColors.set_color(PrintColors.OKGREEN)
+            PrintUtils.set_color(PrintUtils.OKGREEN)
             if "ignore-item" in sp_dir and sp_dir["ignore-item"]:
                 print(f"Ignoring {sp_dir['local_dir']}")
                 continue
@@ -118,7 +118,7 @@ if __name__ == "__main__":
             video_dir_path = os.path.join(videos_dir, sp_dir["local_dir"])
             unsilenced_videos_dir_path = os.path.join(unsilenced_videos_dir, sp_dir["local_dir"])
 
-            PrintColors.set_color(PrintColors.OKCYAN)
+            PrintUtils.set_color(PrintUtils.OKCYAN)
             downloader = Downloader(download_history) # download_history is used to avoid downloading the same file twice
             downloaded_videos = downloader.download_videos(
                 videos = ds.videos,
@@ -129,6 +129,6 @@ if __name__ == "__main__":
                 overwrite = args.d_ow,
             )
             if not args.download_spdirs:
-                PrintColors.set_color(PrintColors.OKMAGENTA)
+                PrintUtils.set_color(PrintUtils.OKMAGENTA)
                 silencer = Silencer(silence_history) # silence_history is used to avoid silencing the same file twice
                 silencer.unsilence_videos(downloaded_videos, unsilenced_videos_dir_path, codec=args.svcodec)

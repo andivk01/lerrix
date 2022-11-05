@@ -1,10 +1,10 @@
-from FFmpegUtils import FFmpegUtils
-from Video import Video
 import time
 import subprocess
 import re
 import os
 import shutil
+from lib.utils.FFmpegUtils import FFmpegUtils
+from lib.scrape.Video import Video
 
 class Silencer:
     def __init__(self, silence_history, db_min=35, min_silence_length=0.5, tmp_directory="tmp"):

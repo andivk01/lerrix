@@ -1,8 +1,8 @@
-from Silencer import Silencer
+from lib.unsilence.Silencer import Silencer
 import os
 import argparse
 import json
-from Video import Video
+from lib.scrape.Video import Video
 
 codecs_available = ["copy", "libx265", "libx264", "h264_amf"]
 log_directory = "logs"
