@@ -11,8 +11,8 @@ from lib.scrape.DirScraper import DirScraper
 
 data_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 log_directory = os.path.join(data_directory, "logs")
-download_history = os.path.join(log_directory, "download_history.log")
-silence_history = os.path.join(log_directory, "silence_history.log")
+# download_history = os.path.join(log_directory, "download_history.log")
+# silence_history = os.path.join(log_directory, "silence_history.log")
 unsilenced_videos_dir = "unsilenced_videos"
 videos_dir = os.path.join(data_directory, "videos")
 credentials_dir = os.path.join(data_directory, "credentials")
@@ -22,20 +22,29 @@ credentials_password = os.path.join(data_directory, "credentials_password")
 tmp_directory = os.path.join(data_directory, "tmp")
 
 enc_key = "qCVjXuHqfNQ4JiuFD9iK" # random string used for encoding the credentials, TODO: INSICURE
+sp_dirs = None
 
-def init_local_dirs(sp_dirs):
+def init():
+    if not os.path.exists(sp_dirs_file):
+        print(f"{sp_dirs_file} not found, creating template to be filled")
+        with open(sp_dirs_file, "w") as f:
+            f.write(json.dumps([{"local_dir": "Local name directory", "url": "Sharepoint url directory", "file_prefix": "PREFIX ", "ignore-item" : "true"}], indent=4))
+        exit(0)
     if not os.path.exists(tmp_directory):
         os.mkdir(tmp_directory)
     if not os.path.exists(log_directory):
         os.mkdir(log_directory)
-    if not os.path.exists(download_history):
-        open(download_history, "w").close()
-    if not os.path.exists(silence_history):
-        open(silence_history, "w").close()
-    if not os.path.exists(unsilenced_videos_dir):
-        os.mkdir(unsilenced_videos_dir)
     if not os.path.exists(videos_dir):
         os.mkdir(videos_dir)
+# def init_local_dirs(sp_dirs):
+
+#     # if not os.path.exists(download_history):
+#     #     open(download_history, "w").close()
+#     # if not os.path.exists(silence_history):
+#     #     open(silence_history, "w").close()
+#     # if not os.path.exists(unsilenced_videos_dir):
+#         # os.mkdir(unsilenced_videos_dir)
+def init_local_spdirs():
     for sp_dir in sp_dirs:
         video_dir_path = os.path.join(videos_dir, sp_dir["local_dir"])
         if not os.path.exists(video_dir_path):
@@ -46,9 +55,10 @@ def init_local_dirs(sp_dirs):
             os.mkdir(unsilenced_videos_dir_path)
 
 def main():
+    init()
     with open(sp_dirs_file) as json_file: # read sharepoint directories to scan
         sp_dirs = json.load(json_file)
-    init_local_dirs(sp_dirs)
+    init_local_spdirs(sp_dirs)
     accounts = []
     
     for sp_dir in sp_dirs:

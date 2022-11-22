@@ -11,9 +11,7 @@ class DirScraper(SP_Scraper):
     def __init__(self, dir_url, username=None, password=None, cookies=None, cookies_file=None):
         super().__init__(username, password, cookies, cookies_file)
         self.dir_url = dir_url
-        self.directory_content = {
-            "dir_url": dir_url
-        }
+        self.directory_content = {"dir_url": dir_url}
         if username is not None:
             self.directory_content["username"] = username
         if cookies is not None:

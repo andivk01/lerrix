@@ -59,12 +59,15 @@ class Downloader:
             "status": Downloader.NOT_DOWNLOADING,
             "sources": sources,
             "output": output,
+            "overwrite": overwrite,
             "filename": output.split("/")[-1],
             "file_extension": output.split(".")[-1],
             "chunk_length": self.chunk_length,
             "current_chunk": 1,
             "chunks": [],
-            "thread_ident": threading.get_ident()
+            "thread_ident": threading.get_ident(),
+            "reassembling_progress": 0,
+            "reassembling_speed": 0
         }
         download["tmpdir"] = os.path.join(self.tmp_directory, "tmp" + download["id"])
         self.downloads.append(download)
@@ -106,8 +109,6 @@ class Downloader:
             return download
 
         Downloader.set_status(download, Downloader.REASSEMBLING, "Reassembling")
-        download["reassembling_progress"] = 0
-        download["reassembling_speed"] = 0
         with open(os.path.join(download["tmpdir"], Downloader.CHUNK_CONCAT_FILENAME), "w") as concat_file:
             for chunk_number in range(1, download["n_chunks"] + 1):
                 concat_file.write(f"file '{os.path.join(download['tmpdir'], str(chunk_number) + '.' + Downloader.CHUNK_EXTENSION)}'\n")
