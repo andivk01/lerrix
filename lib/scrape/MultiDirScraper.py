@@ -1,18 +1,23 @@
 from concurrent.futures import ThreadPoolExecutor
-from datetime import time
+import time
 from lib.scrape.DirScraper import DirScraper
+from lib.utils.SPUtils import handle_exc
 
 
 class MultiDirScraper():
-    def __init__(self, dir_url, accounts, scraping_threads=1): # TODO videos_ignored, ignore_func ecc...
+    def __init__(self, dir_url, accounts, scraping_threads=1):
+        self.dir_url = dir_url
+        self.accounts = accounts
+        self.scraping_threads = scraping_threads
         self.dir_scrapers = [DirScraper(dir_url, account["username"], account["password"], cookies_file=account["cookie_file"]) for account in self.accounts]
-        self.directory_content = {"dir_url": dir_url, "accounts": accounts, "videos": []} # TODO videos_ignored, ignore_func ecc...
+        self.directory_content = {"dir_url": dir_url, "accounts": accounts, "videos": []} # TODO videos_ignored
     
-    def load(self):
+    def load(self, ignore_func_btn=None, then_quit=False):
         self.directory_content["load_start_time"] = time.time()
-        with ThreadPoolExecutor(max_workers=self.SCRAPE_THREADS) as executor:
+        with ThreadPoolExecutor(max_workers=self.scraping_threads) as executor:
             for scraper in self.dir_scrapers:
-                executor.submit(scraper.load, True)
+                load_func = handle_exc()(scraper.load)
+                executor.submit(load_func, ignore_func_btn, then_quit)
 
         for scraper in self.dir_scrapers:
             for scraped_video in scraper.directory_content["videos"]:

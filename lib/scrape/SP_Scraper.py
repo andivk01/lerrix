@@ -49,8 +49,11 @@ class SP_Scraper:
 
     def driver_quit(self):
         if self.driver is not None:
-            self.driver.quit()
-            self.driver = None
+            try:
+                self.driver.quit()
+                self.driver = None
+            except:
+                pass
     
     def is_on_login_page(self):
         return SP_Scraper.LOGIN_URL in self.driver.current_url
@@ -62,7 +65,8 @@ class SP_Scraper:
         self.driver.get(url)
         if self.is_on_login_page():
             self.login()
-            self.driver.get(url)
+            if not self.is_on_login_page() and self.driver.current_url != url:
+                self.driver.get(url)
 
     def login(self):
         if not self.is_on_login_page():

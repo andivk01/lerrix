@@ -1,7 +1,7 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 from lib.download.Downloader import Downloader
-from lib.utils.SPUtils import format_filename
+from lib.utils.SPUtils import format_filename, handle_exc
 
 class SP_Downloader(Downloader):
 
@@ -27,10 +27,11 @@ class SP_Downloader(Downloader):
         if os.path.exists(output_file):
             return None
         else:
-            return super.download(video["sources"], output_file)
+            return self.download(video["sources"], output_file)
 
     def download_spvideos(self, videos, file_prefix, output_dir):
         with ThreadPoolExecutor(max_workers=self.download_threads) as executor:
             for video in videos:
-                executor.submit(self.download_spvideo, video, file_prefix, output_dir)
+                download_spvideo_func = handle_exc()(self.download_spvideo)
+                executor.submit(download_spvideo_func, video, file_prefix, output_dir)
 

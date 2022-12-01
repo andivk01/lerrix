@@ -1,4 +1,5 @@
 import time
+import traceback
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -12,15 +13,16 @@ class DirScraper(SP_Scraper):
         super().__init__(username, password, cookies, cookies_file)
         self.dir_url = dir_url
         self.directory_content = {"dir_url": dir_url}
+        self.directory_content["videos"] = []
         if username is not None:
             self.directory_content["username"] = username
         if cookies is not None:
             self.directory_content["cookies"] = cookies
 
-    def load(self, ignore_func_btn=None):
+    def load(self, ignore_func_btn=None, then_quit=False):
         self.directory_content["load_start_time"] = time.time()
         self.goto_page(self.dir_url)
-
+        #time.sleep(3) # TODO find a better way to wait for the page to load
         WebDriverWait(self.driver, self.timeout).until(EC.element_to_be_clickable((By.XPATH, DirScraper.LINK_BTN_XPATH)))
         link_btns = self.driver.find_elements(By.XPATH, DirScraper.LINK_BTN_XPATH)
         
@@ -36,14 +38,18 @@ class DirScraper(SP_Scraper):
             video_filenames.append(link_btn.text)
 
             manifest_count = len(self._get_manifests())
+            WebDriverWait(self.driver, self.timeout).until(EC.element_to_be_clickable(link_btn))
             link_btn.click()
             time_before_waiting = time.time()
             while(time.time()-time_before_waiting < self.timeout): # wait for getting manifest
                 if len(self._get_manifests()) != manifest_count:
                     break
                 time.sleep(0.5)
-            self.driver._func_when_ready(By.XPATH, DirScraper.CANCEL_VIDEOWATCH_BTN_XPATH, "click")
+            self._func_when_ready(By.XPATH, DirScraper.CANCEL_VIDEOWATCH_BTN_XPATH, "click")
+            break # TODO remove this line to scrape all videos in the directory
         self.directory_content["load_end_time"] = time.time()
         self.directory_content["total_time_to_load"] = self.directory_content["load_end_time"] - self.directory_content["load_start_time"]
         self.directory_content["videos"] = [{"filename": filename, "manifest": manifest} for filename, manifest in zip(video_filenames, self._get_manifests())]
         self.directory_content["video_ignored_filenames"] = video_ignored_filenames
+        if then_quit:
+            self.driver_quit()

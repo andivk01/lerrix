@@ -84,15 +84,22 @@ class Downloader:
                 f.split(".")[0] for f in os.listdir(download["tmpdir"]) 
                 if (not f.startswith(Downloader.UNDONE_PREFIX)) and f.endswith(Downloader.CHUNK_EXTENSION) 
             ]
+            undone_chunks = [
+                f.split(".")[0].replace(Downloader.UNDONE_PREFIX, "") for f in os.listdir(download["tmpdir"])
+                if f.startswith(Downloader.UNDONE_PREFIX) and f.endswith(Downloader.CHUNK_EXTENSION)
+            ]
             try:
                 downloaded_chunks = [int(elem) for elem in downloaded_chunks]
+                undone_chunks = [int(elem) for elem in undone_chunks]
             except:
-                Downloader.set_status(download, Downloader.ERROR, "Error while casting downloaded chunks to int", traceback.format_exc())
+                Downloader.set_status(download, Downloader.ERROR, "Error while casting downloaded/undone chunks to int", traceback.format_exc())
                 download["total_time"] = time.time() - download["start_time"]
                 return download
             if len(downloaded_chunks) > 0:
                 download["current_chunk"] = max(downloaded_chunks) + 1 # TODO
-            download["chunks"] = [{"number": chunk_number, "status": Downloader.SKIPPED} for chunk_number in range(1, download["current_chunk"])]
+            if len(undone_chunks) > 0:
+                download["current_chunk"] = min(undone_chunks)
+            download["chunks"] = [{"number": chunk_number, "status": Downloader.SKIPPED} for chunk_number in downloaded_chunks]
         
         download["video_length"] = duration(download["sources"][0])
         if download["video_length"] is None:
@@ -101,6 +108,7 @@ class Downloader:
             return download
         download["n_chunks"] = math.ceil(download["video_length"] / self.chunk_length)
         Downloader.set_status(download, Downloader.DOWNLOADING, "Downloading")
+
         with ThreadPoolExecutor(max_workers=self.chunk_threads) as executor:
             for chunk_number in range(download["current_chunk"], download["n_chunks"] + 1):
                 executor.submit(self.download_chunk, download, chunk_number, ffmpeg_mod_func)
