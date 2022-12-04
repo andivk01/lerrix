@@ -96,7 +96,7 @@ class Downloader:
                 download["total_time"] = time.time() - download["start_time"]
                 return download
             if len(downloaded_chunks) > 0:
-                download["current_chunk"] = max(downloaded_chunks) + 1 # TODO
+                download["current_chunk"] = max(downloaded_chunks) + 1
             if len(undone_chunks) > 0:
                 download["current_chunk"] = min(undone_chunks)
             download["chunks"] = [{"number": chunk_number, "status": Downloader.SKIPPED} for chunk_number in downloaded_chunks]
@@ -155,6 +155,7 @@ class Downloader:
 
         download["time_to_download"] = time.time() - download["start_time"]
         Downloader.set_status(download, Downloader.FINISHED, "finished")
+        return download
 
     def download_chunk(self, download, chunk_number, source_idx=None, ffmpeg_mod_func=None):
         if self.interrupt:
@@ -170,6 +171,10 @@ class Downloader:
         }
         download["chunks"].append(chunk)
         download["current_chunk"] = chunk_number
+
+        if os.path.exists(chunk["output"]):
+            Downloader.set_status(chunk, Downloader.SKIPPED, "Chunk already downloaded")
+            return
         if source_idx is None:
             source_idx = chunk_number % len(download["sources"])
         chunk["ffmpeg_cmd"] = [

@@ -11,7 +11,7 @@ if os.path.exists('README.md'):
 
 setuptools.setup( # TODO
     name = "lerrix",
-    version = "1.0",
+    version = "0.0.5",
     license = 'TODO',
     author = 'Andrea Ivkovic',
     author_email = 'andrea.ivkovic01@gmail.com',
@@ -22,8 +22,9 @@ setuptools.setup( # TODO
     install_requires = requirements,
     entry_points = {
         "console_scripts": [
-            "ler-down = cli.ler-down:main",
-            "lerrix = cli.lerrix:main",
+            "lerrix = scripts.lerrix:main",
+            "ler-down = scripts.ler-down:main",
+            "ler-accounts = scripts.ler-accounts:main",
         ]
     }
 )

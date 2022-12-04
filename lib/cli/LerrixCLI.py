@@ -3,6 +3,7 @@ import os
 import time
 import threading
 import json
+from lib.download.Downloader import Downloader
 
 from lib.download.SP_Downloader import SP_Downloader
 from lib.utils.PrintUtils import PrintUtils
@@ -13,7 +14,7 @@ from lib.utils.DataKeeper import DataKeeper
 from lib.utils.SPUtils import format_filename, handle_exc
 
 class LerrixCLI:
-    DEFAULT_CONFIG_FILE_LOCATION = os.path.join(os.path.dirname(os.path.dirname(__file__)), "lerrix_config.json")
+    DEFAULT_CONFIG_FILE_LOCATION = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "lerrix_config.json")
     ENC_KEY = "qCVjXuHqfNQ4JiuFD9iK"
     SCRAPE_THREADS = 1
 
@@ -27,9 +28,11 @@ class LerrixCLI:
         self.accounts = self.init_accounts_and_cookies()
 
     def ignore_btn_from_scraping(self, btn): # TODO: place somewhere else these functions
+        return self.ignore_from_downloading(btn.text)
+    def ignore_from_downloading(self, video_title):
         with open(self.config["download_history_file"], "r") as f:
             for line in f:
-                if btn.text in line or format_filename(btn.text) in line:
+                if video_title in line or format_filename(video_title) in line:
                     return True
         return False
     def ignore_from_unsilencing(self, video_title): # TODO: place somewhere else these functions
@@ -63,14 +66,19 @@ class LerrixCLI:
             try:
                 while thread.is_alive():
                     status = downloader.pretty_status()
-                    print(status)
-                    time.sleep(0.5)
-                    #PrintUtils.clear_line(status.count("\n")+1)
+                    print(status, end="")
+                    time.sleep(1.5)
+                    PrintUtils.clear_line(status.count("\n"))
             except KeyboardInterrupt:
                 downloader.interrupt = True
                 print("Download stopped")
                 sys.exit(0)
-                
+            for download in downloader.downloads:
+                if download["status"] == Downloader.FINISHED:
+                    with open(self.config["download_history_file"], "a") as f:
+                        print("Logged download: " + download["filename"])
+                        f.write(download["filename"] + "\n")
+
             unsilencer = Unsilencer(self.config["tmp_directory"])
 
             for input in os.listdir(os.path.join(self.config["videos_dir"], sp_dir["local_dir"])):
@@ -82,14 +90,18 @@ class LerrixCLI:
                 try:
                     while thread.is_alive():
                         status = unsilencer.pretty_status()
-                        print(status)
-                        time.sleep(0.5)
-                        #PrintUtils.clear_line(status.count("\n")+1)
+                        print(status, end="")
+                        time.sleep(1.5)
+                        PrintUtils.clear_line(status.count("\n"))
                 except KeyboardInterrupt:
                     unsilencer.interrupt = True
                     print("Unsilencing stopped")
                     sys.exit(0)
-
+            for unsilence in unsilencer.unsilences:
+                if unsilence["status"] == Unsilencer.FINISHED:
+                    with open(self.config["unsilence_history_file"], "a") as f:
+                        print("Logged unsilence: " + unsilence["filename"])
+                        f.write(unsilence["filename"] + "\n")
     def init_local_dirs(self):
         dirs_to_create = [
             self.config["data_directory"],

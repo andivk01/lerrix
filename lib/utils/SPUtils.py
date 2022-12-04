@@ -14,7 +14,7 @@ def format_filename(filename):
         time = datetime.strptime(filename_no_dash[time_start_idx:time_end_idx], "%H%M%S")
         return f"{date.strftime('%d-%m-%Y')} {time.strftime('%H.%M.%S')}.{extension}"
     except Exception as e: # TODO: make this more specific?
-        print(f"Exception while formatting name: {filename_no_dash}\n{e}") # TODO FILENAME IS MODIFIED
+        print(f"Exception while formatting name: {filename}\n{e}")
         return filename
 
 def handle_exc(handler_func=None): # TODO

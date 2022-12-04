@@ -18,16 +18,14 @@ class SP_Downloader(Downloader):
     
     def download_spvideo(self, video, file_prefix, output_dir):
         formatted_title = self.format_filename_func(video["filename"])
+        formatted_title = formatted_title[:formatted_title.rfind(".")]
         extension = video["filename"].split(".")[-1]
         if self.download_extension is not None:
             extension = self.download_extension
 
         output_file = os.path.join(output_dir, f"{file_prefix}{formatted_title}.{extension}")
 
-        if os.path.exists(output_file):
-            return None
-        else:
-            return self.download(video["sources"], output_file)
+        return self.download(video["sources"], output_file)
 
     def download_spvideos(self, videos, file_prefix, output_dir):
         with ThreadPoolExecutor(max_workers=self.download_threads) as executor:

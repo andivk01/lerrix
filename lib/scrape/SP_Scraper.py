@@ -4,7 +4,6 @@ import os
 from seleniumwire import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import StaleElementReferenceException
 from webdriver_manager.chrome import ChromeDriverManager
 
 class SP_Scraper:
@@ -23,7 +22,7 @@ class SP_Scraper:
         self.cookies_file = cookies_file
         self.implicit_wait = implicit_wait
         self.timeout = timeout
-        self.args = args #["--mute-audio", "--headless"] # TODO HEADLESS CRASH
+        self.args = args
         self.driver = driver
 
         if cookies is None:
@@ -31,11 +30,11 @@ class SP_Scraper:
                 with open(self.cookies_file, 'rb') as f:
                     self.cookies = pickle.load(f)
             elif self.username is None or self.password is None:
-                    raise ValueError("Username or password is not provided, and cookies not found") # TODO CORRECT EXCEPTION?
+                raise ValueError("Username or password is not provided, and cookies not found")
     
     def new_driver(self):
         chrome_opt = webdriver.ChromeOptions()
-        chrome_opt.add_experimental_option("excludeSwitches", ["enable-logging"]) # TODO, this removes bluetooth error
+        chrome_opt.add_experimental_option("excludeSwitches", ["enable-logging"]) # removes bluetooth error
         for arg in self.args:
             chrome_opt.add_argument(arg)
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_opt)
@@ -115,6 +114,6 @@ class SP_Scraper:
                 else:
                     func(func_params)
                 return
-            except StaleElementReferenceException:
+            except Exception:
                 time.sleep(wait_retry)
         return False # TODO raise exception?

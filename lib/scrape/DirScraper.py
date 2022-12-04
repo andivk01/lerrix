@@ -46,7 +46,6 @@ class DirScraper(SP_Scraper):
                     break
                 time.sleep(0.5)
             self._func_when_ready(By.XPATH, DirScraper.CANCEL_VIDEOWATCH_BTN_XPATH, "click")
-            break # TODO remove this line to scrape all videos in the directory
         self.directory_content["load_end_time"] = time.time()
         self.directory_content["total_time_to_load"] = self.directory_content["load_end_time"] - self.directory_content["load_start_time"]
         self.directory_content["videos"] = [{"filename": filename, "manifest": manifest} for filename, manifest in zip(video_filenames, self._get_manifests())]

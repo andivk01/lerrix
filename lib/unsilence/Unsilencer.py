@@ -72,6 +72,8 @@ class Unsilencer:
         
         Unsilencer.set_status(unsilence, Unsilencer.EXTRACTING)
         self.audioextract(unsilence)
+        if self.interrupt:
+            return
         unsilence["start_reassembling_time"] = time.time()
         Unsilencer.set_status(unsilence, Unsilencer.REASSEMBLING, "Reassembling")
         with open(os.path.join(unsilence["tmpdir"], Unsilencer.CHUNK_CONCAT_FILENAME), "w") as concat_file:
@@ -85,7 +87,8 @@ class Unsilencer:
             "-f", "concat",
             "-safe", "0",
             "-i", os.path.join(unsilence["tmpdir"], Unsilencer.CHUNK_CONCAT_FILENAME),
-            "-c", "copy",
+            "-c:v", "libx264",
+            "-preset", "veryfast",
             "-y",
             unsilence["output"]
         ]
@@ -116,10 +119,10 @@ class Unsilencer:
         unsilence["start_extracting_time"] = time.time()
         for idx_interval, interval in enumerate(unsilence["intervals"]):
             if self.interrupt:
-                return # TODO
+                return
             unsilence["extracting_progress"] = (idx_interval+1) / len(unsilence["intervals"])
             file_chunk_out = os.path.join(unsilence["tmpdir"], str(idx_interval+1) + "." + Unsilencer.CHUNK_EXTENSION)
-            command = [ # TODO check if reencoding is necessary?
+            command = [
                 "ffmpeg",
                 "-v", "quiet",
                 "-stats", 
@@ -128,6 +131,7 @@ class Unsilencer:
                 "-i", unsilence['input'],
                 "-vsync", "1",
                 "-async", "1",
+                "-preset", "ultrafast",
                 "-safe", "0",
                 "-ignore_unknown", "-y",
                 "-f", unsilence["file_extension"],
@@ -155,7 +159,7 @@ class Unsilencer:
         unsilence["times"] = []
         for line in console_output:
             if self.interrupt:
-                return # TODO
+                return
             if "[silencedetect" in line:
                 capture = re.search("\\[silencedetect @ [0-9xa-f]+] silence_([a-z]+): (-?[0-9]+.?[0-9]*[e-]*[0-9]*)", line)
                 if capture is not None:
@@ -171,11 +175,9 @@ class Unsilencer:
         audio_detected = 0
         for i in range(0, len(new_times)-1, 2):
             if self.interrupt:
-                return # TODO
+                return
             if new_times[i+1] - new_times[i] < 0.1: # if audio interval length is less than 0.1s=100ms
                 continue
-            # if new_times[i] == new_times[i+1]: TODO remove? Considering if-statement above...
-            #     continue
             audio_detected += new_times[i+1] - new_times[i]
             if i > 0:
                 if new_times[i-1] < new_times[i] - 0.02: # add 20ms on left of the interval
@@ -196,10 +198,10 @@ class Unsilencer:
         to_return = ""
         for unsilence in self.unsilences:
             if unsilence["status"] == Unsilencer.SKIPPED or unsilence["status"] == Unsilencer.NOT_UNSILENCING:
-                continue # TODO
+                continue
             to_return += f"File {unsilence['input']}:\n"
             to_return += f"Output: {unsilence['output']}\n"
-            to_return += f"Status: {unsilence['status']}\n"
+            to_return += f"Unsilencing status: {unsilence['status']}\n"
             if unsilence["status"] == Unsilencer.ERROR or unsilence["status"] == Unsilencer.SKIPPED:
                 to_return += f"Status_msg: {unsilence['status_msg']}\n"
                 to_return += f"Details: {unsilence['status_details']}\n"
@@ -212,7 +214,11 @@ class Unsilencer:
             elif unsilence["status"] == Unsilencer.DETECTING:
                 to_return += f"Detecting: {(unsilence['detecting_progress'] * 100):.2f}%\n"
             elif unsilence["status"] == Unsilencer.EXTRACTING:
-                to_return += f"Extracting: {(unsilence['extracting_progress'] * 100):.2f}%\n"
+                extr_percent = (unsilence["extracting_progress"] * 100)
+                to_return += f"Extracting: {(extr_percent):.2f}%\n"
+                if unsilence["extracting_progress"] > 0:
+                    time_elapsed = (time.time() - unsilence["start_extracting_time"])
+                    to_return += f"Speed: {extr_percent / time_elapsed:.2f}%/s\n"
             elif unsilence["status"] == Unsilencer.REASSEMBLING:
                 to_return += f"Reassembling: {(unsilence['reassembling_progress'] * 100):.2f}%\n"
                 to_return += f"Reassembling speed: {unsilence['reassembling_speed']:.2f}x\n"
