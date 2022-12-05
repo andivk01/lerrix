@@ -38,14 +38,6 @@ class Downloader:
         self.chunk_length = chunk_length
         self.chunk_threads = chunk_threads
         self.interrupt = False
-    
-    def is_doing_smth(self):
-        if self.interrupt:
-            return False
-        for download in self.downloads:
-            if download["status"] not in Downloader.DONE_CONSTS:
-                return True
-        return False
 
     def download(self, sources, output, overwrite=False, ffmpeg_mod_func=None, ffmpeg_concat_mod_func=None):
         assert len(sources) > 0
@@ -199,7 +191,7 @@ class Downloader:
         for line in ffmpeg_out:
             if self.interrupt:
                 return
-            if ffmpeg_process.poll() is not None and ffmpeg_process.returncode != 0 or "NULL @" in line:
+            if ffmpeg_process.poll() is not None and ffmpeg_process.returncode != 0 or "NULL @" in line or "HTTP ERROR" in line.upper():
                 Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode))
                 return
 
