@@ -3,13 +3,13 @@ import traceback
 
 def format_filename(filename):
     filename_no_dash = filename.replace("-", "") # 2022-10-04_11-00-16.mkv -> 20221004_110016.mkv
-    extension = filename.split(".")[-1]
 
     date_start_idx = filename_no_dash.find("202")
     date_end_idx = date_start_idx + 8
     time_start_idx = date_end_idx + 1
     time_end_idx = time_start_idx + 6
     try:
+        extension = filename.split(".")[-1]
         date = datetime.strptime(filename_no_dash[date_start_idx:date_end_idx], "%Y%m%d")
         time = datetime.strptime(filename_no_dash[time_start_idx:time_end_idx], "%H%M%S")
         return f"{date.strftime('%d-%m-%Y')} {time.strftime('%H.%M.%S')}.{extension}"
