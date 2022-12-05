@@ -64,7 +64,7 @@ class LerrixCLI:
             download_spvideos_func = handle_exc()(downloader.download_spvideos)
             ffmpeg_mod_func = None
             if "ffmpeg_add_params" in sp_dir and len(sp_dir["ffmpeg_add_params"]) > 0:
-                ffmpeg_mod_func = SPUtils.ffmpeg_add_params(sp_dir["ffmpeg_add_params"])
+                ffmpeg_mod_func = SPUtils.ffmpeg_add_params
             thread = threading.Thread(target=download_spvideos_func, args=(videos_to_download, sp_dir["file_prefix"], output_download_dir, ffmpeg_mod_func))
             thread.start()
             try:
