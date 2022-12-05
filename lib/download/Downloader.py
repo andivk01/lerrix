@@ -199,6 +199,8 @@ class Downloader:
                 return
             if ffmpeg_process.poll() is not None and ffmpeg_process.returncode != 0 or "NULL @" in line or "HTTP ERROR" in line.upper():
                 Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode))
+                Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode))
+                self.interrupt = True
                 return
 
             if line.startswith("frame="):
@@ -213,6 +215,8 @@ class Downloader:
             os.rename(chunk["tmp_output"], chunk["output"])
         else:
             Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", f"Cannot find downloaded chunk ({chunk['tmp_output']}) while moving it to final destination")
+            Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunk", f"Cannot find downloaded chunk ({chunk['tmp_output']}) while moving it to final destination")
+            self.interrupt = True
             return
         chunk["time_to_download"] = time.time() - chunk["start_time"]
         Downloader.set_status(chunk, Downloader.FINISHED, "finished")
@@ -245,7 +249,6 @@ class Downloader:
             if download["status"] == Downloader.DOWNLOADING:
                 to_return += f"video_length: {download['video_length']}\n"
                 to_return += f"Chunks {download['current_chunk']}/{download['n_chunks']}:\n"
-                # total speed and progress TODO
 
                 for chunk in download["chunks"]:
                     if chunk["status"] == Downloader.DOWNLOADING:
@@ -256,12 +259,14 @@ class Downloader:
                         total_progress += self.chunk_length # TODO 
                         to_return += f"\tChunk_{chunk['number']}: {chunk['status']}\n"
                     elif chunk["status"] == Downloader.ERROR:
-                        to_return += f"\tffmpeg_process_output: {chunk['ffmpeg_process_output']}\n"
                         to_return += f"\tChunk_{chunk['number']}:"
                         if "error_msg" in chunk:
                             to_return += f"\tError: {chunk['error_msg']}\n"
                         if "error_details" in chunk:
                             to_return += f"\tError details: {chunk['error_details']}\n"
+                        if "ffmpeg_cmd" in chunk:
+                            ffmpeg_cmd_str = " ".join(chunk["ffmpeg_cmd"])
+                            to_return += f"\tffmpeg_cmd: {ffmpeg_cmd_str}\n"
                 to_return += f"Total progress: {int(total_progress)}/{download['video_length']}s\n"
                 to_return += f"Total speed: {total_speed:.2f}x\n"
             elif download["status"] == Downloader.REASSEMBLING:
