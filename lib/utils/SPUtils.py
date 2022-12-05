@@ -17,6 +17,12 @@ def format_filename(filename):
         print(f"Exception while formatting name: {filename}\n{e}")
         return filename
 
+def ffmpeg_add_params(ffmpeg_cmd, params, after_param="-y"):
+    idx = ffmpeg_cmd.index(after_param) + 1
+    for param in params:
+        ffmpeg_cmd.insert(idx, param)
+        idx += 1
+
 def handle_exc(handler_func=None): # TODO
     def decorator(func):
         def wrapper(*args, **kwargs):

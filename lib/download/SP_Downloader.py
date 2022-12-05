@@ -16,7 +16,7 @@ class SP_Downloader(Downloader):
         self.download_extension = download_extension
         self.download_threads = download_threads
     
-    def download_spvideo(self, video, file_prefix, output_dir):
+    def download_spvideo(self, video, file_prefix, output_dir, ffmpeg_mod_func=None):
         formatted_title = self.format_filename_func(video["filename"])
         formatted_title = formatted_title[:formatted_title.rfind(".")]
         extension = video["filename"].split(".")[-1]
@@ -25,11 +25,11 @@ class SP_Downloader(Downloader):
 
         output_file = os.path.join(output_dir, f"{file_prefix}{formatted_title}.{extension}")
 
-        return self.download(video["sources"], output_file)
+        return self.download(video["sources"], output_file, ffmpeg_mod_func=ffmpeg_mod_func)
 
-    def download_spvideos(self, videos, file_prefix, output_dir):
+    def download_spvideos(self, videos, file_prefix, output_dir, ffmpeg_mod_func=None):
         with ThreadPoolExecutor(max_workers=self.download_threads) as executor:
             for video in videos:
                 download_spvideo_func = handle_exc()(self.download_spvideo)
-                executor.submit(download_spvideo_func, video, file_prefix, output_dir)
+                executor.submit(download_spvideo_func, video, file_prefix, output_dir, ffmpeg_mod_func)
 

@@ -6,6 +6,7 @@ import json
 from lib.download.Downloader import Downloader
 
 from lib.download.SP_Downloader import SP_Downloader
+from lib.utils import SPUtils
 from lib.utils.PrintUtils import PrintUtils
 from lib.scrape.MultiDirScraper import MultiDirScraper
 from lib.unsilence.Unsilencer import Unsilencer
@@ -61,7 +62,10 @@ class LerrixCLI:
             videos_to_download = [{"filename": video["filename"], "sources": video["manifests"]} for video in multidir_scraper.directory_content["videos"]]
             output_download_dir = os.path.join(self.config["videos_dir"], sp_dir["local_dir"])
             download_spvideos_func = handle_exc()(downloader.download_spvideos)
-            thread = threading.Thread(target=download_spvideos_func, args=(videos_to_download, sp_dir["file_prefix"], output_download_dir))
+            ffmpeg_mod_func = None
+            if "ffmpeg_add_params" in sp_dir and len(sp_dir["ffmpeg_add_params"]) > 0:
+                ffmpeg_mod_func = SPUtils.ffmpeg_add_params(sp_dir["ffmpeg_add_params"])
+            thread = threading.Thread(target=download_spvideos_func, args=(videos_to_download, sp_dir["file_prefix"], output_download_dir, ffmpeg_mod_func))
             thread.start()
             try:
                 while thread.is_alive():
@@ -165,13 +169,13 @@ class LerrixCLI:
             config["data_directory"] = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
             config["tmp_directory"] = os.path.join(config["data_directory"], "tmp")
             config["log_directory"] = os.path.join(config["data_directory"], "logs")
-            config["download_history_file"] = os.path.join(config["data_directory"], "logs", "download_history.txt")
-            config["unsilence_history_file"] = os.path.join(config["data_directory"], "logs", "unsilence_history.txt")
+            config["download_history_file"] = os.path.join(config["data_directory"], "logs", "download_history.log")
+            config["unsilence_history_file"] = os.path.join(config["data_directory"], "logs", "unsilence_history.log")
             config["unsilenced_videos_dir"] = os.path.join(config["data_directory"], "unsilenced_videos")
             config["videos_dir"] = os.path.join(config["data_directory"], "videos")
             config["accounts_dir"] = os.path.join(config["data_directory"], "accounts")
             config["cookies_dir"] = os.path.join(config["data_directory"], "cookies")
-            config["sp_dirs"] = [{"local_dir": "Local name directory", "url": "Sharepoint url directory", "file_prefix": "PREFIX ", "ignore-item" : "true"}]
+            config["sp_dirs"] = [{"local_dir": "Local name directory", "url": "Sharepoint url directory", "file_prefix": "PREFIX ", "ignore-item": "true"}]
             config["scraping_threads"] = 1
             config["download_chunk_threads"] = 1
             config["download_chunk_length"] = 600
