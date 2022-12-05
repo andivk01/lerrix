@@ -105,7 +105,7 @@ class Downloader:
         with ThreadPoolExecutor(max_workers=self.chunk_threads) as executor:
             for chunk_number in range(download["current_chunk"], download["n_chunks"] + 1):
                 download_chunk_func = handle_exc()(self.download_chunk)
-                executor.submit(download_chunk_func, download, chunk_number, ffmpeg_mod_func)
+                executor.submit(download_chunk_func, download, chunk_number, ffmpeg_mod_func=ffmpeg_mod_func)
 
         if self.interrupt:
             return download
@@ -185,7 +185,6 @@ class Downloader:
         ]
         if ffmpeg_mod_func is not None:
             chunk["ffmpeg_cmd"] = ffmpeg_mod_func(chunk["ffmpeg_cmd"])
-        chunk["ffmpeg_cmd_joined"] = " ".join(chunk["ffmpeg_cmd"])
 
         ffmpeg_process = subprocess.Popen(chunk["ffmpeg_cmd"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
         ffmpeg_out = ffmpeg_process.stdout
