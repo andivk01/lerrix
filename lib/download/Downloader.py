@@ -107,6 +107,11 @@ class Downloader:
                 download_chunk_func = handle_exc()(self.download_chunk)
                 executor.submit(download_chunk_func, download, chunk_number, ffmpeg_mod_func=ffmpeg_mod_func)
 
+        for chunk in download["chunks"]:
+            if chunk["status"] != Downloader.FINISHED or chunk["status"] != Downloader.SKIPPED: # TODO I don't like this if statement, but it works for now
+                Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunks")
+                return download
+
         if self.interrupt:
             return download
 
