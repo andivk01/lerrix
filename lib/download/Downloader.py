@@ -10,6 +10,7 @@ import hashlib
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from lib.utils.FFmpegUtils import duration, time_in_seconds
+from lib.utils.SPUtils import handle_exc
 
 class Downloader:
     NOT_DOWNLOADING = "NOT_DOWNLOADING"
@@ -103,7 +104,8 @@ class Downloader:
 
         with ThreadPoolExecutor(max_workers=self.chunk_threads) as executor:
             for chunk_number in range(download["current_chunk"], download["n_chunks"] + 1):
-                executor.submit(self.download_chunk, download, chunk_number, ffmpeg_mod_func)
+                download_chunk_func = handle_exc()(self.download_chunk)
+                executor.submit(download_chunk_func, download, chunk_number, ffmpeg_mod_func)
 
         if self.interrupt:
             return download

@@ -22,6 +22,7 @@ def ffmpeg_add_params(ffmpeg_cmd, params, after_param="-y"):
     for param in params:
         ffmpeg_cmd.insert(idx, param)
         idx += 1
+    return ffmpeg_cmd
 
 def handle_exc(handler_func=None): # TODO
     def decorator(func):
