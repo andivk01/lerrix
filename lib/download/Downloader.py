@@ -252,12 +252,10 @@ class Downloader:
                         total_progress += chunk["progress"]
                         total_speed += chunk["speed"]
                         to_return += f"\tChunk_{chunk['number']}: {chunk['status']} {int(chunk['progress'])}/{self.chunk_length}s {chunk['speed']}x\n"
-                        #to_return += f"\t\t{chunk['ffmpeg_cmd_joined']}\n"
                     elif chunk["status"] == Downloader.FINISHED or chunk["status"] == Downloader.SKIPPED:
                         total_progress += self.chunk_length # TODO 
                         to_return += f"\tChunk_{chunk['number']}: {chunk['status']}\n"
                     elif chunk["status"] == Downloader.ERROR:
-                        to_return += f"\tffmpeg_cmd_joined: {chunk['ffmpeg_cmd_joined']}\n"
                         to_return += f"\tffmpeg_process_output: {chunk['ffmpeg_process_output']}\n"
                         to_return += f"\tChunk_{chunk['number']}:"
                         if "error_msg" in chunk:
