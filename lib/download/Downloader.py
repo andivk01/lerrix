@@ -216,7 +216,6 @@ class Downloader:
             if self.interrupt:
                 return
             if ffmpeg_process.poll() is not None and ffmpeg_process.returncode != 0 or "NULL @" in line or "HTTP ERROR" in line.upper():
-                print(line) # TODO
                 Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode + " while executing " + " ".join(chunk["ffmpeg_cmd"])))
                 Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode + " while executing " + " ".join(chunk["ffmpeg_cmd"])))
                 self.interrupt = True

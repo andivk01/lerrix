@@ -76,12 +76,6 @@ class LerrixCLI:
                     print(status, end="")
                     time.sleep(0.5)
                     PrintUtils.clear_line(status.count("\n")+1)
-                    for download in downloader.downloads:
-                        if download["status"] == Downloader.FINISHED or download["status"] == Downloader.SKIPPED:
-                            with open(self.config["download_history_file"], "r+") as f:
-                                if f.read().find(download["filename"]) == -1:
-                                    print("Logged download: " + download["filename"])
-                                    f.write(download["filename"] + "\n")
             except KeyboardInterrupt:
                 downloader.interrupt = True
                 print("Download stopped")
@@ -113,8 +107,8 @@ class LerrixCLI:
                     unsilencer.interrupt = True
                     print("Unsilencing stopped")
                     sys.exit(0)
-                    status = unsilencer.pretty_status()
-                    print(status, end="")
+                status = unsilencer.pretty_status()
+                print(status, end="")
             for unsilence in unsilencer.unsilences:
                 if unsilence["status"] == Unsilencer.FINISHED:
                     with open(self.config["unsilence_history_file"], "a") as f:
