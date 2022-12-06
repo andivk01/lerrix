@@ -78,14 +78,14 @@ class SP_Scraper:
         try:
             self._func_when_ready(By.XPATH, SP_Scraper.USERNAME_FIELD_XPATH, "send_keys", func_params=(self.username))
             self._func_when_ready(By.ID, "idSIButton9", "click")
-        except Exception as e:
+        except Exception as e: # TODO only log
             print("Exception: ", e)
         try:
             self._func_when_ready(By.XPATH, SP_Scraper.PASSWORD_FIELD_XPATH, "click")
             self._func_when_ready(By.XPATH, SP_Scraper.PASSWORD_FIELD_XPATH, "send_keys", func_params=(self.password))
             self._func_when_ready(By.ID, "idSIButton9", "click")
             self._func_when_ready(By.ID, "idBtn_Back", "click")
-        except Exception as e:
+        except Exception as e: # TODO only log
             print("Exception: ", e)
 
         if self.is_on_login_page():

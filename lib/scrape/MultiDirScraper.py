@@ -26,7 +26,6 @@ class MultiDirScraper():
                     multidirscraped_video["manifests"].append(scraped_video["manifest"])
                 else:
                     self.directory_content["videos"].append({"filename": scraped_video["filename"], "manifests": [scraped_video["manifest"]]})
-            scraper.driver_quit()
 
         self.directory_content["load_end_time"] = time.time()
         self.directory_content["total_time_to_load"] = self.directory_content["load_end_time"] - self.directory_content["load_start_time"]

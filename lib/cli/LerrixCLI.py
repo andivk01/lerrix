@@ -53,7 +53,11 @@ class LerrixCLI:
             multidir_scraper.load(ignore_func_btn=self.ignore_btn_from_scraping, then_quit=True)
             PrintUtils.clear_line()
             print(f"Scraped new content from directory: {sp_dir['local_dir']} in {multidir_scraper.directory_content['total_time_to_load']}s")
-
+            for video in multidir_scraper.directory_content["videos"]:
+                print(f"Found video: {video['filename']}")
+                print(f"Sources:")
+                for source in video["manifests"]:
+                    print(f" - {source}")
             downloader = SP_Downloader(
                 tmp_directory = self.config["tmp_directory"],
                 chunk_length = self.config["download_chunk_length"],
@@ -121,8 +125,10 @@ class LerrixCLI:
             if not os.path.exists(d):
                 print("Creating directory: " + d)
                 os.makedirs(d)
+        sorted_sp_dirs = self.config["sp_dirs"]
+        sorted_sp_dirs.sort(key=lambda x: x["priority"])
 
-        for sp_dir in self.config["sp_dirs"]:
+        for sp_dir in sorted_sp_dirs:
             if sp_dir["ignore-item"]:
                 print("Ignoring item: " + sp_dir["local_dir"])
                 continue
@@ -175,7 +181,7 @@ class LerrixCLI:
             config["videos_dir"] = os.path.join(config["data_directory"], "videos")
             config["accounts_dir"] = os.path.join(config["data_directory"], "accounts")
             config["cookies_dir"] = os.path.join(config["data_directory"], "cookies")
-            config["sp_dirs"] = [{"local_dir": "Local name directory", "url": "Sharepoint url directory", "file_prefix": "PREFIX ", "ignore-item": "true"}]
+            config["sp_dirs"] = [{"local_dir": "Local name directory", "url": "Sharepoint url directory", "file_prefix": "PREFIX ", "ignore-item": "true", "priority": 1}]
             config["scraping_threads"] = 1
             config["download_chunk_threads"] = 1
             config["download_chunk_length"] = 600

@@ -1,5 +1,5 @@
 import time
-import traceback
+import random
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -35,16 +35,24 @@ class DirScraper(SP_Scraper):
                 video_ignored_filenames.append(link_btn.text)
                 continue
             
-            video_filenames.append(link_btn.text)
-
-            manifest_count = len(self._get_manifests())
             WebDriverWait(self.driver, self.timeout).until(EC.element_to_be_clickable(link_btn))
             link_btn.click()
             time_before_waiting = time.time()
+            manifest_count = len(self._get_manifests())
             while(time.time()-time_before_waiting < self.timeout): # wait for getting manifest
                 if len(self._get_manifests()) != manifest_count:
                     break
                 time.sleep(0.5)
+
+            time.sleep(random.randint(5, 15)) # TODO 
+            if len(video_filenames) == len(self._get_manifests()):
+                print(f"WARNING: Cannot retrieve manifest for {link_btn.text}")
+                print(f"Ignoring {link_btn.text}...")
+                video_ignored_count += 1
+                video_ignored_filenames.append(link_btn.text)
+            else:
+                video_filenames.append(link_btn.text)
+                
             self._func_when_ready(By.XPATH, DirScraper.CANCEL_VIDEOWATCH_BTN_XPATH, "click")
         self.directory_content["load_end_time"] = time.time()
         self.directory_content["total_time_to_load"] = self.directory_content["load_end_time"] - self.directory_content["load_start_time"]
