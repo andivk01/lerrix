@@ -53,6 +53,10 @@ class LerrixCLI:
             multidir_scraper.load(ignore_func_btn=self.ignore_btn_from_scraping, then_quit=True)
             PrintUtils.clear_line()
             print(f"Scraped new content from directory: {sp_dir['local_dir']} in {multidir_scraper.directory_content['total_time_to_load']}s")
+            for video in multidir_scraper.directory_content["videos"]:
+                print(f"Video: {video['filename']}")
+                for manifest in video["manifests"]:
+                    print(f"    - {manifest}")
             downloader = SP_Downloader(
                 tmp_directory = self.config["tmp_directory"],
                 chunk_length = self.config["download_chunk_length"],
@@ -70,17 +74,20 @@ class LerrixCLI:
                 while thread.is_alive():
                     status = downloader.pretty_status()
                     print(status, end="")
-                    time.sleep(1.5)
-                    PrintUtils.clear_line(status.count("\n"))
+                    time.sleep(0.5)
+                    #PrintUtils.clear_line(status.count("\n"))
             except KeyboardInterrupt:
                 downloader.interrupt = True
                 print("Download stopped")
                 sys.exit(0)
+            status = downloader.pretty_status()
+            print(status, end="")
             for download in downloader.downloads:
-                if download["status"] == Downloader.FINISHED:
-                    with open(self.config["download_history_file"], "a") as f:
-                        print("Logged download: " + download["filename"])
-                        f.write(download["filename"] + "\n")
+                if download["status"] == Downloader.FINISHED or download["status"] == Downloader.SKIPPED:
+                    with open(self.config["download_history_file"], "r+") as f:
+                        if f.read().find(download["filename"]) == -1:
+                            print("Logged download: " + download["filename"])
+                            f.write(download["filename"] + "\n")
 
             unsilencer = Unsilencer(self.config["tmp_directory"])
 
@@ -94,12 +101,14 @@ class LerrixCLI:
                     while thread.is_alive():
                         status = unsilencer.pretty_status()
                         print(status, end="")
-                        time.sleep(1.5)
-                        PrintUtils.clear_line(status.count("\n"))
+                        time.sleep(0.5)
+                        #PrintUtils.clear_line(status.count("\n"))
                 except KeyboardInterrupt:
                     unsilencer.interrupt = True
                     print("Unsilencing stopped")
                     sys.exit(0)
+                    status = unsilencer.pretty_status()
+                    print(status, end="")
             for unsilence in unsilencer.unsilences:
                 if unsilence["status"] == Unsilencer.FINISHED:
                     with open(self.config["unsilence_history_file"], "a") as f:

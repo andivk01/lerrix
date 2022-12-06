@@ -22,7 +22,7 @@ class DirScraper(SP_Scraper):
     def load(self, ignore_func_btn=None, then_quit=False):
         self.directory_content["load_start_time"] = time.time()
         self.goto_page(self.dir_url)
-        #time.sleep(3) # TODO find a better way to wait for the page to load
+        time.sleep(2) # TODO find a better way to wait for the page to load
         WebDriverWait(self.driver, self.timeout).until(EC.element_to_be_clickable((By.XPATH, DirScraper.LINK_BTN_XPATH)))
         link_btns = self.driver.find_elements(By.XPATH, DirScraper.LINK_BTN_XPATH)
         

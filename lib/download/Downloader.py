@@ -22,6 +22,7 @@ class Downloader:
     DONE_CONSTS = ["FINISHED", "ERROR", "SKIPPED"]
 
     UNDONE_PREFIX = "undone_"
+    BROKEN_PREFIX = "broken_"
     CHUNK_EXTENSION = "chunk"
     CHUNK_CONCAT_FILENAME = "concat.txt"
 
@@ -107,11 +108,6 @@ class Downloader:
                 download_chunk_func = handle_exc()(self.download_chunk)
                 executor.submit(download_chunk_func, download, chunk_number, ffmpeg_mod_func=ffmpeg_mod_func)
 
-        for chunk in download["chunks"]:
-            if chunk["status"] != Downloader.FINISHED or chunk["status"] != Downloader.SKIPPED: # TODO I don't like this if statement, but it works for now
-                Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunks")
-                return download
-
         if self.interrupt:
             return download
 
@@ -149,6 +145,16 @@ class Downloader:
                 capture = re.search("speed=([0-9.]+.?[0-9]*)x", line)
                 if capture:
                     download["reassembling_speed"] = float(capture[1])
+
+        output_duration = duration(download["output"])
+        if output_duration is not None:
+            duration_diff = math.fabs(output_duration - download["video_length"])
+            if duration_diff > 1:
+                Downloader.set_status(download, Downloader.ERROR, "Error while reassembling chunks", f"Output file duration is not the same as the video length, difference of {duration_diff}s")
+                os.rename(download["output"], os.path.join(os.path.dirname(download["output"]), Downloader.BROKEN_PREFIX + os.path.basename(download["output"])))
+                return download
+        else:
+            print("WARNING: Could not get output duration, cannot check if it is the same as the video length.")
 
         shutil.rmtree(download["tmpdir"], ignore_errors=True)
 
@@ -198,8 +204,9 @@ class Downloader:
             if self.interrupt:
                 return
             if ffmpeg_process.poll() is not None and ffmpeg_process.returncode != 0 or "NULL @" in line or "HTTP ERROR" in line.upper():
-                Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode))
-                Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode))
+                print(line) # TODO
+                Downloader.set_status(chunk, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode + " while executing " + " ".join(chunk["ffmpeg_cmd"])))
+                Downloader.set_status(download, Downloader.ERROR, "Error while downloading chunk", "ffmpeg returned " + str(ffmpeg_process.returncode + " while executing " + " ".join(chunk["ffmpeg_cmd"])))
                 self.interrupt = True
                 return
 
@@ -260,10 +267,10 @@ class Downloader:
                         to_return += f"\tChunk_{chunk['number']}: {chunk['status']}\n"
                     elif chunk["status"] == Downloader.ERROR:
                         to_return += f"\tChunk_{chunk['number']}:"
-                        if "error_msg" in chunk:
-                            to_return += f"\tError: {chunk['error_msg']}\n"
-                        if "error_details" in chunk:
-                            to_return += f"\tError details: {chunk['error_details']}\n"
+                        if "status_msg" in chunk:
+                            to_return += f"\tError: {chunk['status_msg']}\n"
+                        if "status_details" in chunk:
+                            to_return += f"\tError details: {chunk['status_details']}\n"
                         if "ffmpeg_cmd" in chunk:
                             ffmpeg_cmd_str = " ".join(chunk["ffmpeg_cmd"])
                             to_return += f"\tffmpeg_cmd: {ffmpeg_cmd_str}\n"
@@ -273,8 +280,8 @@ class Downloader:
                 to_return += f"Reassembling progress: {download['reassembling_progress']}/{download['video_length']}\n"
                 to_return += f"Reassembling speed: {download['reassembling_speed']}\n"
             elif download["status"] == Downloader.ERROR:
-                if "error_msg" in download:
-                    to_return += f"Error: {download['error_msg']}\n"
-                if "error_details" in download:
-                    to_return += f"Error details: {download['error_details']}\n"
+                if "status_msg" in download:
+                    to_return += f"Error: {download['status_msg']}\n"
+                if "status_details" in download:
+                    to_return += f"Error details: {download['status_details']}\n"
         return to_return
