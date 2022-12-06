@@ -102,7 +102,8 @@ class Downloader:
                 Downloader.set_status(download, Downloader.ERROR, f"Could not get video (source {idx}) length")
                 download["total_time"] = time.time() - download["start_time"]
                 return download
-            if source_length != download["video_length"]:
+                
+            if math.fabs(source_length - download["video_length"]) > 1:
                 Downloader.set_status(download, Downloader.ERROR, f"Video lengths do not match (source {idx}): {source_length} != {download['video_length']}")
                 download["total_time"] = time.time() - download["start_time"]
                 return download
