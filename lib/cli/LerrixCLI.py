@@ -53,11 +53,6 @@ class LerrixCLI:
             multidir_scraper.load(ignore_func_btn=self.ignore_btn_from_scraping, then_quit=True)
             PrintUtils.clear_line()
             print(f"Scraped new content from directory: {sp_dir['local_dir']} in {multidir_scraper.directory_content['total_time_to_load']}s")
-            for video in multidir_scraper.directory_content["videos"]:
-                print(f"Found video: {video['filename']}")
-                print(f"Sources:")
-                for source in video["manifests"]:
-                    print(f" - {source}")
             downloader = SP_Downloader(
                 tmp_directory = self.config["tmp_directory"],
                 chunk_length = self.config["download_chunk_length"],
