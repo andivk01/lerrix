@@ -76,6 +76,12 @@ class LerrixCLI:
                     print(status, end="")
                     time.sleep(0.5)
                     PrintUtils.clear_line(status.count("\n")+1)
+                    for download in downloader.downloads:
+                        if download["status"] == Downloader.FINISHED or download["status"] == Downloader.SKIPPED:
+                            with open(self.config["download_history_file"], "r+") as f:
+                                if f.read().find(download["filename"]) == -1:
+                                    print("Logged download: " + download["filename"])
+                                    f.write(download["filename"] + "\n")
             except KeyboardInterrupt:
                 downloader.interrupt = True
                 print("Download stopped")
