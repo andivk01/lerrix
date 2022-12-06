@@ -96,6 +96,17 @@ class Downloader:
             download["chunks"] = [{"number": chunk_number, "status": Downloader.SKIPPED} for chunk_number in downloaded_chunks]
         
         download["video_length"] = duration(download["sources"][0])
+        for idx, source in enumerate(download["sources"]):
+            source_length = duration(source)
+            if source_length is None:
+                Downloader.set_status(download, Downloader.ERROR, f"Could not get video (source {idx}) length")
+                download["total_time"] = time.time() - download["start_time"]
+                return download
+            if source_length != download["video_length"]:
+                Downloader.set_status(download, Downloader.ERROR, f"Video lengths do not match (source {idx}): {source_length} != {download['video_length']}")
+                download["total_time"] = time.time() - download["start_time"]
+                return download
+
         if download["video_length"] is None:
             Downloader.set_status(download, Downloader.ERROR, "Could not get video length")
             download["total_time"] = time.time() - download["start_time"]

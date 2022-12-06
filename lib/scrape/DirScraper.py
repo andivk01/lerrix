@@ -27,6 +27,7 @@ class DirScraper(SP_Scraper):
         link_btns = self.driver.find_elements(By.XPATH, DirScraper.LINK_BTN_XPATH)
         
         video_filenames = []
+        video_manifests = []
         video_ignored_count = 0
         video_ignored_filenames = []
         for link_btn in link_btns:
@@ -34,7 +35,8 @@ class DirScraper(SP_Scraper):
                 video_ignored_count += 1
                 video_ignored_filenames.append(link_btn.text)
                 continue
-            
+            # if "20221115" not in link_btn.text: # TODO
+            #     continue
             WebDriverWait(self.driver, self.timeout).until(EC.element_to_be_clickable(link_btn))
             link_btn.click()
             time_before_waiting = time.time()
@@ -44,19 +46,22 @@ class DirScraper(SP_Scraper):
                     break
                 time.sleep(0.5)
 
-            time.sleep(random.randint(5, 15)) # TODO 
-            if len(video_filenames) == len(self._get_manifests()):
+            time.sleep(random.randint(5, 15)) # TODO
+
+            manifests_found = self._get_manifests()
+            if len(video_filenames) == len(manifests_found):
                 print(f"WARNING: Cannot retrieve manifest for {link_btn.text}")
                 print(f"Ignoring {link_btn.text}...")
                 video_ignored_count += 1
                 video_ignored_filenames.append(link_btn.text)
             else:
                 video_filenames.append(link_btn.text)
+                video_manifests.append(manifests_found[-1])
                 
             self._func_when_ready(By.XPATH, DirScraper.CANCEL_VIDEOWATCH_BTN_XPATH, "click")
         self.directory_content["load_end_time"] = time.time()
         self.directory_content["total_time_to_load"] = self.directory_content["load_end_time"] - self.directory_content["load_start_time"]
-        self.directory_content["videos"] = [{"filename": filename, "manifest": manifest} for filename, manifest in zip(video_filenames, self._get_manifests())]
+        self.directory_content["videos"] = [{"filename": filename, "manifest": manifest} for filename, manifest in zip(video_filenames, video_manifests)]
         self.directory_content["video_ignored_filenames"] = video_ignored_filenames
         if then_quit:
             self.driver_quit()

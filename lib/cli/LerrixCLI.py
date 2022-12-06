@@ -56,7 +56,7 @@ class LerrixCLI:
             for video in multidir_scraper.directory_content["videos"]:
                 print(f"Video: {video['filename']}")
                 for manifest in video["manifests"]:
-                    print(f"    - {manifest}")
+                    print(f"    - {manifest[20:]}")
             downloader = SP_Downloader(
                 tmp_directory = self.config["tmp_directory"],
                 chunk_length = self.config["download_chunk_length"],
@@ -75,7 +75,7 @@ class LerrixCLI:
                     status = downloader.pretty_status()
                     print(status, end="")
                     time.sleep(0.5)
-                    #PrintUtils.clear_line(status.count("\n"))
+                    PrintUtils.clear_line(status.count("\n")+1)
             except KeyboardInterrupt:
                 downloader.interrupt = True
                 print("Download stopped")
@@ -102,7 +102,7 @@ class LerrixCLI:
                         status = unsilencer.pretty_status()
                         print(status, end="")
                         time.sleep(0.5)
-                        #PrintUtils.clear_line(status.count("\n"))
+                        PrintUtils.clear_line(status.count("\n")+1)
                 except KeyboardInterrupt:
                     unsilencer.interrupt = True
                     print("Unsilencing stopped")
